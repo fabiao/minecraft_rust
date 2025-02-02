@@ -1,9 +1,5 @@
-use crate::world;
-use winit::{
-    event::{ElementState, MouseButton, WindowEvent},
-    keyboard::{KeyCode, PhysicalKey},
-};
-extern crate glm;
+use glium::{winit::{event::{ElementState, MouseButton, WindowEvent}, keyboard::{KeyCode, PhysicalKey}}, PolygonMode};
+use crate::world::World;
 
 #[derive(Default, Clone)]
 pub struct CameraState {
@@ -27,7 +23,7 @@ pub struct CameraState {
     pub last_frame: f32,
 
     pub player_height: f32,
-    pub mesh: bool,
+    pub polygon_mode: Option<PolygonMode>,
     pub flying: bool,
 
     pub mouse_button_clicked: bool,
@@ -53,7 +49,7 @@ pub struct CameraState {
 
 impl CameraState {
     pub fn new(
-        world: &mut world::World,
+        world: &mut World,
         player_height: f32,
         camera_pos: [f32; 3],
         window_width: u32,
@@ -79,7 +75,7 @@ impl CameraState {
             last_frame: 0.0,
 
             player_height: player_height,
-            mesh: false,
+            polygon_mode: Some(PolygonMode::Fill),
             flying: false,
 
             mouse_button_clicked: false,
@@ -103,12 +99,12 @@ impl CameraState {
         };
 
         player.camera_pos =
-            world::World::get_spawn_location(&world, &player.camera_pos, 0 as usize);
+            World::get_spawn_location(&world, &player.camera_pos, 0 as usize);
 
         return player;
     }
 
-    pub fn process_input(&mut self, event: &WindowEvent, world: &mut world::World) {
+    pub fn process_input(&mut self, event: &WindowEvent, world: &mut World) {
         match event {
             WindowEvent::KeyboardInput { event, .. } => {
                 let pressed = event.state.is_pressed();
@@ -182,17 +178,14 @@ impl CameraState {
                                     self.keyboard_s = false;
                                 }
                             }
-                            KeyCode::KeyQ => {
-                                println!("IMPLEMENT POLYGON MODE Q");
-                                // unsafe {
-                                //     if !self.mesh {
-                                //         gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-                                //         self.mesh = true;
-                                //     } else{
-                                //         gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
-                                //         self.mesh = false;
-                                //     }
-                                // }
+                            KeyCode::KeyF => {
+                                self.polygon_mode = Some(PolygonMode::Fill);
+                            }
+                            KeyCode::KeyP => {
+                                self.polygon_mode = Some(PolygonMode::Point);
+                            }
+                            KeyCode::KeyL => {
+                                self.polygon_mode = Some(PolygonMode::Line);
                             }
                             KeyCode::KeyE => {
                                 if pressed {
@@ -207,7 +200,7 @@ impl CameraState {
                                 }
                             }
                             KeyCode::KeyF => {
-                                world::World::destroy_block(
+                                World::destroy_block(
                                     world,
                                     &self.camera_front,
                                     &self.camera_pos,
@@ -252,15 +245,15 @@ impl CameraState {
                     self.first_mouse = (true, false);
                 }
 
-                let mut xoffset = x as f32 - self.last_x;
-                let mut yoffset = self.last_y - y as f32; // reversed since y-coordinates go from bottom to top
+                let mut x_offset = x as f32 - self.last_x;
+                let mut y_offset = self.last_y - y as f32; // reversed since y-coordinates go from bottom to top
 
                 let sensitivity = 0.1; // change this value to your liking
-                xoffset *= sensitivity;
-                yoffset *= sensitivity;
+                x_offset *= sensitivity;
+                y_offset *= sensitivity;
 
-                self.yaw += xoffset;
-                self.pitch += yoffset;
+                self.yaw += x_offset;
+                self.pitch += y_offset;
 
                 //make sure that when pitch is out of bounds, screen doesn't get flipped
                 if self.pitch > 95.0 {
@@ -282,14 +275,14 @@ impl CameraState {
                     if !self.mouse_button_clicked {
                         match button {
                             MouseButton::Left => {
-                                world::World::destroy_block(
+                                World::destroy_block(
                                     world,
                                     &self.camera_front,
                                     &self.camera_pos,
                                 );
                             }
                             MouseButton::Right => {
-                                world::World::place_block(
+                                World::place_block(
                                     world,
                                     &self.camera_front,
                                     &self.camera_pos,
@@ -312,7 +305,7 @@ impl CameraState {
         };
     }
 
-    pub fn update(&mut self, world: &mut world::World) {
+    pub fn update(&mut self, world: &mut World) {
         if self.in_liquid {
             self.liquid_speed_modifier = 0.45;
         } else {
@@ -330,7 +323,7 @@ impl CameraState {
                         camera_speed * self.camera_front[2],
                     ],
                 );
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -363,7 +356,7 @@ impl CameraState {
                     ],
                 );
 
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -393,7 +386,7 @@ impl CameraState {
                     ],
                 );
 
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -424,7 +417,7 @@ impl CameraState {
                     ],
                 );
 
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -453,7 +446,7 @@ impl CameraState {
                             [0.0, camera_speed * self.acceleration_result, 0.0],
                         );
 
-                        let move_location = world::World::move_to_direction(
+                        let move_location = World::move_to_direction(
                             &world,
                             &desired_position,
                             self.player_height,
@@ -487,7 +480,7 @@ impl CameraState {
                     let camera_speed = 7.0 * self.delta_time * self.liquid_speed_modifier;
                     let desired_position = add(self.camera_pos, [0.0, camera_speed, 0.0]);
 
-                    let move_location = world::World::move_to_direction(
+                    let move_location = World::move_to_direction(
                         &world,
                         &desired_position,
                         self.player_height,
@@ -525,7 +518,7 @@ impl CameraState {
                         [0.0, camera_speed * self.acceleration_result, 0.0],
                     );
                 }
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -558,7 +551,7 @@ impl CameraState {
                         camera_speed * self.camera_front[2],
                     ],
                 );
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -589,7 +582,7 @@ impl CameraState {
                     ],
                 );
 
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -619,7 +612,7 @@ impl CameraState {
                     ],
                 );
 
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -650,7 +643,7 @@ impl CameraState {
                     ],
                 );
 
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -673,7 +666,7 @@ impl CameraState {
                 let camera_speed = 7.0 * self.delta_time * self.liquid_speed_modifier;
                 let desired_position = add(self.camera_pos, [0.0, camera_speed, 0.0]);
 
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,
@@ -692,7 +685,7 @@ impl CameraState {
             if self.keyboard_ctrl {
                 let camera_speed = 7.0 * self.delta_time * self.liquid_speed_modifier;
                 let desired_position = minus(self.camera_pos, [0.0, camera_speed, 0.0]);
-                let move_location = world::World::move_to_direction(
+                let move_location = World::move_to_direction(
                     &world,
                     &desired_position,
                     self.player_height,

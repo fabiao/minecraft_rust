@@ -1,18 +1,17 @@
 extern crate glium;
-use glium::{implement_vertex, uniform, Display, Surface};
-use glutin::surface::WindowSurface;
+use glium::{glutin::surface::WindowSurface, implement_vertex, uniform, Display, Surface};
 use std::io::Cursor;
 
 pub struct Skybox {
     program: glium::Program,
     skybox_vao: glium::VertexBuffer<Vertex>,
     skybox_indices: glium::IndexBuffer<u16>,
-    tex_posx: glium::Texture2d,
-    tex_negx: glium::Texture2d,
-    tex_posy: glium::Texture2d,
-    tex_negy: glium::Texture2d,
-    tex_posz: glium::Texture2d,
-    tex_negz: glium::Texture2d,
+    tex_pos_x: glium::Texture2d,
+    tex_neg_x: glium::Texture2d,
+    tex_pos_y: glium::Texture2d,
+    tex_neg_y: glium::Texture2d,
+    tex_pos_z: glium::Texture2d,
+    tex_neg_z: glium::Texture2d,
     cubemap: glium::texture::Cubemap,
     dest_rect1: glium::BlitTarget,
 }
@@ -34,7 +33,7 @@ impl Skybox {
         .to_rgba8();
         let image_dimensions = image.dimensions();
         let image = glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), image_dimensions);
-        let tex_posx = glium::Texture2d::new(display, image).unwrap();
+        let tex_pos_x = glium::Texture2d::new(display, image).unwrap();
 
         let image = image::load(
             Cursor::new(&include_bytes!("../resources/sides.png")),
@@ -44,7 +43,7 @@ impl Skybox {
         .to_rgba8();
         let image_dimensions = image.dimensions();
         let image = glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), image_dimensions);
-        let tex_negx = glium::Texture2d::new(display, image).unwrap();
+        let tex_neg_x = glium::Texture2d::new(display, image).unwrap();
 
         let image = image::load(
             Cursor::new(&include_bytes!("../resources/posy.png")),
@@ -54,7 +53,7 @@ impl Skybox {
         .to_rgba8();
         let image_dimensions = image.dimensions();
         let image = glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), image_dimensions);
-        let tex_posy = glium::Texture2d::new(display, image).unwrap();
+        let tex_pos_y = glium::Texture2d::new(display, image).unwrap();
 
         let image = image::load(
             Cursor::new(&include_bytes!("../resources/negy.png")),
@@ -64,7 +63,7 @@ impl Skybox {
         .to_rgba8();
         let image_dimensions = image.dimensions();
         let image = glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), image_dimensions);
-        let tex_negy = glium::Texture2d::new(display, image).unwrap();
+        let tex_neg_y = glium::Texture2d::new(display, image).unwrap();
 
         let image = image::load(
             Cursor::new(&include_bytes!("../resources/sides.png")),
@@ -74,7 +73,7 @@ impl Skybox {
         .to_rgba8();
         let image_dimensions = image.dimensions();
         let image = glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), image_dimensions);
-        let tex_posz = glium::Texture2d::new(display, image).unwrap();
+        let tex_pos_z = glium::Texture2d::new(display, image).unwrap();
 
         let image = image::load(
             Cursor::new(&include_bytes!("../resources/sides.png")),
@@ -84,9 +83,9 @@ impl Skybox {
         .to_rgba8();
         let image_dimensions = image.dimensions();
         let image = glium::texture::RawImage2d::from_raw_rgba(image.into_raw(), image_dimensions);
-        let tex_negz = glium::Texture2d::new(display, image).unwrap();
+        let tex_neg_z = glium::Texture2d::new(display, image).unwrap();
 
-        let cubemap = glium::texture::Cubemap::empty(display, 512).unwrap();
+        let cube_map = glium::texture::Cubemap::empty(display, 512).unwrap();
 
         // skybox
         let skybox_vertex_buffer = {
@@ -234,13 +233,13 @@ impl Skybox {
             program: skybox_program,
             skybox_vao: skybox_vertex_buffer,
             skybox_indices: skybox_index_buffer,
-            tex_posx: tex_posx,
-            tex_negx: tex_negx,
-            tex_posy: tex_posy,
-            tex_negy: tex_negy,
-            tex_posz: tex_posz,
-            tex_negz: tex_negz,
-            cubemap: cubemap,
+            tex_pos_x,
+            tex_neg_x,
+            tex_pos_y,
+            tex_neg_y,
+            tex_pos_z,
+            tex_neg_z,
+            cubemap: cube_map,
             dest_rect1: dest_rect1,
         };
     }
@@ -296,32 +295,32 @@ impl Skybox {
             )
             .unwrap();
 
-            self.tex_posx.as_surface().blit_whole_color_to(
+            self.tex_pos_x.as_surface().blit_whole_color_to(
                 &framebuffer1,
                 &self.dest_rect1,
                 glium::uniforms::MagnifySamplerFilter::Linear,
             );
-            self.tex_negx.as_surface().blit_whole_color_to(
+            self.tex_neg_x.as_surface().blit_whole_color_to(
                 &framebuffer2,
                 &self.dest_rect1,
                 glium::uniforms::MagnifySamplerFilter::Linear,
             );
-            self.tex_posy.as_surface().blit_whole_color_to(
+            self.tex_pos_y.as_surface().blit_whole_color_to(
                 &framebuffer3,
                 &self.dest_rect1,
                 glium::uniforms::MagnifySamplerFilter::Linear,
             );
-            self.tex_negy.as_surface().blit_whole_color_to(
+            self.tex_neg_y.as_surface().blit_whole_color_to(
                 &framebuffer4,
                 &self.dest_rect1,
                 glium::uniforms::MagnifySamplerFilter::Linear,
             );
-            self.tex_posz.as_surface().blit_whole_color_to(
+            self.tex_pos_z.as_surface().blit_whole_color_to(
                 &framebuffer5,
                 &self.dest_rect1,
                 glium::uniforms::MagnifySamplerFilter::Linear,
             );
-            self.tex_negz.as_surface().blit_whole_color_to(
+            self.tex_neg_z.as_surface().blit_whole_color_to(
                 &framebuffer6,
                 &self.dest_rect1,
                 glium::uniforms::MagnifySamplerFilter::Linear,
@@ -345,9 +344,9 @@ impl Skybox {
         ];
 
         let skybox_uniforms = uniform! {
-             view: view,
-             projection: projection,
-             cubetex: self.cubemap.sampled().magnify_filter(glium::uniforms::MagnifySamplerFilter::Linear),
+            view: view,
+            projection: projection,
+            cubetex: self.cubemap.sampled().magnify_filter(glium::uniforms::MagnifySamplerFilter::Linear),
         };
 
         target

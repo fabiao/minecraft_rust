@@ -1,21 +1,22 @@
 use camera::CameraState;
-use glium::Surface;
-use glium::{backend::glutin::SimpleWindowBuilder, Display, Program};
-use glutin::surface::WindowSurface;
+use glium::{
+    backend::glutin::SimpleWindowBuilder,
+    glutin::surface::WindowSurface,
+    winit::{
+        application::ApplicationHandler,
+        dpi::{LogicalPosition, Position},
+        event::{StartCause, WindowEvent},
+        event_loop::{ActiveEventLoop, EventLoop},
+        keyboard::{KeyCode, PhysicalKey},
+        window::{Window, WindowId},
+    },
+    Display, Program, Surface,
+};
 use rand::Rng;
 use rand::SeedableRng;
 use skybox::Skybox;
 use std::time::{SystemTime, UNIX_EPOCH};
 use stopwatch::Stopwatch;
-
-use winit::{
-    application::ApplicationHandler,
-    dpi::{LogicalPosition, Position},
-    event::{StartCause, WindowEvent},
-    event_loop::{ActiveEventLoop, EventLoop},
-    keyboard::{KeyCode, PhysicalKey},
-    window::{Window, WindowId},
-};
 use world::World;
 
 use crate::{camera, skybox, world};
@@ -160,7 +161,7 @@ impl App {
 
             if let Some(program_block) = self.program_block.as_ref() {
                 self.world.draw(
-                    &self.camera.camera_pos,
+                    &self.camera,
                     view,
                     projection,
                     &mut target,

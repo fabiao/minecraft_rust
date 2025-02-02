@@ -7,11 +7,12 @@ use std::io::Cursor;
 // use crate::render_gl;
 pub mod block_model;
 pub mod chunk;
+use crate::camera::CameraState;
+
 use self::{block_model::BlockModel, chunk::block};
 use block::Block;
 use chunk::Chunk;
-use glium::{uniform, Display, Surface};
-use glutin::surface::WindowSurface;
+use glium::{glutin::surface::WindowSurface, uniform, Display, Surface};
 use std::collections::HashMap;
 
 #[derive(Default)]
@@ -145,7 +146,7 @@ impl World {
 
     pub fn draw(
         &mut self,
-        camera_pos: &[f32; 3],
+        camera: &CameraState,
         view: [[f32; 4]; 4],
         projection: [[f32; 4]; 4],
         target: &mut glium::Frame,
@@ -165,6 +166,7 @@ impl World {
         };
 
         let params = glium::DrawParameters {
+            polygon_mode: camera.polygon_mode.unwrap(),
             depth: glium::Depth {
                 test: glium::draw_parameters::DepthTest::IfLess,
                 write: true,
@@ -216,11 +218,11 @@ impl World {
                     && self.change_block.len() == 0
                     && !distance(
                         self.view_distance,
-                        &camera_pos,
+                        &camera.camera_pos,
                         &self.chunk_grid[i][k].position,
                     )
                 {
-                    change_direction = get_direction(&camera_pos, &self.chunk_grid[i][k].position);
+                    change_direction = get_direction(&camera.camera_pos, &self.chunk_grid[i][k].position);
                 }
             }
         }

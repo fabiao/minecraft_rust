@@ -1,12 +1,9 @@
 extern crate noise;
 use super::block_model::BlockModel;
-use glium::VertexBuffer;
-use glutin::surface::WindowSurface;
-use noise::Perlin;
-use noise::{Fbm, NoiseFn, Seedable, Worley};
+use glium::{glutin::surface::WindowSurface, VertexBuffer};
+use noise::{Fbm, NoiseFn, Perlin, Seedable, Worley};
 use parking_lot::Mutex;
-use rand::Rng;
-use rand::SeedableRng;
+use rand::{Rng, SeedableRng};
 use rayon::iter::{IndexedParallelIterator, IntoParallelRefMutIterator, ParallelIterator};
 use std::collections::HashMap;
 pub mod block;
@@ -22,7 +19,6 @@ pub struct Chunk {
     pub transparencies: Vec<bool>,
     pub vertex_non_transparent: Option<VertexBuffer<block::Vertex>>,
     pub vertex_transparent: Option<VertexBuffer<block::Vertex>>,
-
     pub world_gen_seed: u32,
     pub underground_height: u8,
     pub sky_height: u8,
@@ -52,14 +48,14 @@ impl Chunk {
 
         // Perlin smooth rolling hills
         // Ridged is just random hills. Maybe good to add at a very low frequency to make interesting terrain
-        // FBM is like Perlin wiht more density and random distortion
+        // FBM is like Perlin with more density and random distortion
         // Billow is very distorted with high height variation. Maybe good for islands if made lower frequency
         // Basic multi is like fbm with more interesting terrain. Same distortion maybe to much frequency.
         // Worley is super basic. Very big chunks almost checkerboard. Very big differences in height. Flat. Good for biomes
-        // Value is like perlin but even less frequency and a bit more height variaton
-        // Super simplex is like perln with more freqnecy and even more height variaton. More than Value
-        // Open simplex is very very flat and low heigh variaton
-        // Hybrd multi is very extreme. Maybe not use this one
+        // Value is like perlin but even less frequency and a bit more height variation
+        // Super simplex is like perlin with more frequency and even more height variation. More than Value
+        // Open simplex is very very flat and low heigh variation
+        // Hybrid multi is very extreme. Maybe not use this one
 
         let end_pos = generate_chunk(
             change_block,
@@ -579,7 +575,7 @@ fn get_block_type(
     biome: u8,
 ) -> u8 {
     if biome == 2 {
-        //Check if the j value is below undeground height. Everything underground is stone
+        //Check if the j value is below underground height. Everything underground is stone
         if block_height < underground_height {
             return 1; //Stone
         }
@@ -614,7 +610,7 @@ fn get_block_type(
             return 5; // Wood log
         }
 
-        //Check if the j value is below undeground height. Everything underground is stone
+        //Check if the j value is below underground height. Everything underground is stone
         if block_height < underground_height {
             return 1; //Stone
         }
